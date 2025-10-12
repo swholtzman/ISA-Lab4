@@ -85,13 +85,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const response = await fetch(API_BASE_URL, {
           method: "POST",
           headers: {
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+            "Content-Type": "application/json",
+            Accept: "application/json",
           },
-          body:
-            "word=" +
-            encodeURIComponent(word) +
-            "&definition=" +
-            encodeURIComponent(definition),
+          body: JSON.stringify({ word, definition }),
         });
 
         const contentType = response.headers.get("Content-Type") || "";
