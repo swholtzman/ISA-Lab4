@@ -5,16 +5,19 @@
   align-items: center;
   gap: 20px;
   padding: 20px;
+
 }
 
 .form_container {
   display: flex;
   flex-direction: column;
   gap: 10px;
+
 }
 
 .results_container {
   width: min(800px, 92vw);
+
 }
 
 .notice-card {
@@ -26,6 +29,7 @@
   background: #fff;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
     Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+
 }
 
 .notice-head {
@@ -33,12 +37,14 @@
   align-items: baseline;
   gap: 10px;
   margin-bottom: 8px;
+
 }
 
 .notice-title {
   font-size: 1rem;
   font-weight: 600;
   margin: 0;
+
 }
 
 .badge {
@@ -46,24 +52,31 @@
   padding: 2px 8px;
   border-radius: 999px;
   border: 1px solid #ccc;
+
 }
 
 .badge.ok {
   background: #e8f7ee;
   border-color: #a6d5b5;
+
 }
+
 .badge.error {
   background: #fdecec;
   border-color: #f1a5a5;
+
 }
+
 .badge.network-error {
   background: #fff3cd;
   border-color: #ffe69c;
+
 }
 
 .notice-body {
   margin: 6px 0 10px;
   white-space: pre-wrap;
+
 }
 
 .notice-meta {
@@ -72,8 +85,10 @@
   gap: 6px 12px;
   font-size: 0.9rem;
   color: #444;
+
 }
 
 .notice-meta div span {
   color: #777;
+  
 }
