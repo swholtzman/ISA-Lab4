@@ -1,3 +1,4 @@
+// static/ajax.js
 "use strict";
 
 /**
@@ -16,41 +17,126 @@
  *   { "requestId": 102, "word": "book", "definition": "..." }
  *   { "requestId": 103, "message": "word 'book' not found!" }
  */
-
 document.addEventListener("DOMContentLoaded", () => {
   const API_BASE_URL =
     "https://assignments.isaaclauzon.com/comp4537/labs/4/api/definitions";
 
   /**
-   * Validates a dictionary word: non-empty, alphabetic start, letters/spaces/-/' allowed.
-   * This keeps the UI simple while rejecting numbers and obviously invalid input.
+   * validates a dictionary word: non-empty, alphabetic start, letters/spaces/-/' allowed
+   * keeps UI simple while rejecting numbers and obviously invalid input
    */
   function isValidWord(word) {
     if (typeof word !== "string") return false;
     const trimmed = word.trim();
     if (trimmed.length === 0) return false;
-    // Word must start with a letter, may contain letters, spaces, hyphens, or apostrophes, but not consecutively or at the end
     return /^[A-Za-z](?:[A-Za-z]|[ \-'][A-Za-z])*$/.test(trimmed);
   }
 
-  /**
-   * Validates a definition: non-empty printable string.
-   */
   function isValidDefinition(definition) {
     if (typeof definition !== "string") return false;
-    const trimmed = definition.trim();
-    return trimmed.length > 0;
+    return definition.trim().length > 0;
+  }
+
+  function clearElement(element) {
+    while (element.firstChild) element.removeChild(element.firstChild);
   }
 
   /**
-   * Renders a friendly JSON block into a <pre>.
-   * Note: This will overwrite all content and children of the preElement.
+   * build and insert a “pretty result card”.
+   * shows common fields if present (status, message, httpStatus,
+   * requestId, word, definition, word_count, entries, etc.).
    */
-  function renderJson(preElement, payload) {
-    preElement.textContent = JSON.stringify(payload, null, 2);
+  function renderCard(targetElement, payload) {
+    clearElement(targetElement);
+
+    const status =
+      payload?.status ||
+      payload?.data?.status ||
+      (payload?.message ? "ok" : "ok"); // default
+
+    const message =
+      payload?.message ||
+      payload?.data?.message ||
+      payload?.server?.message ||
+      payload?.data ||
+      "";
+
+    const httpStatus =
+      payload?.httpStatus ??
+      payload?.code ??
+      payload?.statusCode ??
+      payload?.data?.code;
+
+    // pull common data points if they exist
+    const definition = payload?.data?.definition ?? payload?.definition ?? null;
+    const requestId =
+      payload?.data?.requestId ??
+      payload?.requestId ??
+      payload?.server?.requestId ??
+      null;
+    const word =
+      payload?.word ?? payload?.data?.word ?? payload?.server?.word ?? null;
+    const wordCount =
+      payload?.data?.word_count ??
+      payload?.word_count ??
+      payload?.data?.count ??
+      null;
+
+    const card = document.createElement("section");
+    card.className = "notice-card";
+
+    const head = document.createElement("div");
+    head.className = "notice-head";
+
+    const title = document.createElement("h3");
+    title.className = "notice-title";
+    title.textContent = word ? `Result for “${word}”` : "Request Result";
+
+    const badge = document.createElement("span");
+    badge.className = `badge ${String(status).toLowerCase()}`;
+    badge.textContent = String(status);
+
+    head.appendChild(title);
+    head.appendChild(badge);
+
+    const body = document.createElement("div");
+    body.className = "notice-body";
+    if (message && typeof message === "string") {
+      body.textContent = message;
+    } else if (message && typeof message === "object") {
+
+      // fallback if server returns nested data as object
+      body.textContent = JSON.stringify(message, null, 2);
+    }
+
+    const meta = document.createElement("div");
+    meta.className = "notice-meta";
+
+    function addMeta(label, value) {
+      if (value === undefined || value === null || value === "") return;
+      const row = document.createElement("div");
+      const k = document.createElement("span");
+      k.textContent = `${label}: `;
+      const v = document.createElement("strong");
+      v.textContent = String(value);
+      row.appendChild(k);
+      row.appendChild(v);
+      meta.appendChild(row);
+    }
+
+    addMeta("HTTP Status", httpStatus);
+    addMeta("Request ID", requestId);
+    addMeta("Word", word);
+    addMeta("Definition", definition);
+    addMeta("Word Count", wordCount);
+
+    card.appendChild(head);
+    card.appendChild(body);
+    card.appendChild(meta);
+    targetElement.appendChild(card);
   }
 
-  // ---- STORE (POST) ----
+  /* ---------- STORE (POST) ---------- */
   const storeForm = document.getElementById("storeForm");
   const storeFeedback = document.getElementById("storeFeedback");
 
@@ -65,18 +151,20 @@ document.addEventListener("DOMContentLoaded", () => {
       const definition = (definitionInput?.value ?? "").trim();
 
       if (!isValidWord(word)) {
-        renderJson(storeFeedback, {
+        renderCard(storeFeedback, {
           status: "error",
           message:
             "Please enter a valid English word (letters, spaces, hyphens, and apostrophes only).",
+          httpStatus: 422,
         });
         return;
       }
 
       if (!isValidDefinition(definition)) {
-        renderJson(storeFeedback, {
+        renderCard(storeFeedback, {
           status: "error",
           message: "Please enter a valid definition (non-empty).",
+          httpStatus: 422,
         });
         return;
       }
@@ -94,17 +182,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const contentType = response.headers.get("Content-Type") || "";
         if (!response.ok) {
+          
           //  attempt to parse error JSON if provided
           if (contentType.includes("application/json")) {
             const errorData = await response.json();
-            renderJson(storeFeedback, {
+            renderCard(storeFeedback, {
               status: "error",
               httpStatus: response.status,
-              server: errorData,
+              ...errorData,
             });
           } else {
             const text = await response.text();
-            renderJson(storeFeedback, {
+            renderCard(storeFeedback, {
               status: "error",
               httpStatus: response.status,
               message: text || response.statusText,
@@ -117,20 +206,25 @@ document.addEventListener("DOMContentLoaded", () => {
           ? await response.json()
           : { message: await response.text() };
 
-        renderJson(storeFeedback, { status: "ok", data });
+        renderCard(storeFeedback, {
+          status: "ok",
+          httpStatus: response.status,
+          ...data,
+        });
         storeForm.reset();
       } catch (error) {
-        renderJson(storeFeedback, {
+        renderCard(storeFeedback, {
           status: "network-error",
           message:
             "The request could not be completed. Please check your connection or try again.",
           detail: String(error),
+          httpStatus: 0,
         });
       }
     });
   }
 
-  //   ---- SEARCH (GET) ----
+  /* ---------- SEARCH (GET) ---------- */
   const searchForm = document.getElementById("searchForm");
   const searchFeedback = document.getElementById("searchFeedback");
 
@@ -142,10 +236,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const word = (searchWordInput?.value ?? "").trim();
 
       if (!isValidWord(word)) {
-        renderJson(searchFeedback, {
+        renderCard(searchFeedback, {
           status: "error",
           message:
             "Please enter a valid English word (letters, spaces, hyphens, and apostrophes only).",
+          httpStatus: 422,
         });
         return;
       }
@@ -158,14 +253,14 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!response.ok) {
           if (contentType.includes("application/json")) {
             const errorData = await response.json();
-            renderJson(searchFeedback, {
+            renderCard(searchFeedback, {
               status: "error",
               httpStatus: response.status,
-              server: errorData,
+              ...errorData,
             });
           } else {
             const text = await response.text();
-            renderJson(searchFeedback, {
+            renderCard(searchFeedback, {
               status: "error",
               httpStatus: response.status,
               message: text || response.statusText,
@@ -178,14 +273,19 @@ document.addEventListener("DOMContentLoaded", () => {
           ? await response.json()
           : { message: await response.text() };
 
-        renderJson(searchFeedback, { status: "ok", data });
+        renderCard(searchFeedback, {
+          status: "ok",
+          httpStatus: response.status,
+          ...data,
+        });
         searchForm.reset();
       } catch (error) {
-        renderJson(searchFeedback, {
+        renderCard(searchFeedback, {
           status: "network-error",
           message:
             "The request could not be completed. Please check your connection or try again.",
           detail: String(error),
+          httpStatus: 0,
         });
       }
     });
