@@ -1,19 +1,39 @@
+<!-- static/store.html -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Store Page</title>
-    <link rel="stylesheet" href="styles.css">
-    <script defer src="store.js"></script>
-</head>
-<body>
-    <h1>Store Dictionary</h1>
-    <form id="storeForm">
-        <input type="text" id="termInput" placeholder="Enter term" required>
-        <input type="text" id="definitionInput" placeholder="Enter definition" required>
-        <button type="submit">Store</button>
-    </form>
-    <div id="storeResultArea"></div>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Store Definition</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script defer src="ajax.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>Store a Definition</h1>
+
+      <form id="storeForm" novalidate>
+        <label for="wordInput">Word</label>
+        <input
+          id="wordInput"
+          name="word"
+          type="text"
+          autocomplete="off"
+          required
+        />
+
+        <label for="definitionInput">Definition</label>
+        <textarea
+          id="definitionInput"
+          name="definition"
+          rows="4"
+          required
+        ></textarea>
+
+        <button type="submit">Submit</button>
+      </form>
+
+      <pre id="storeFeedback" aria-live="polite"></pre>
+    </main>
+  </body>
 </html>
