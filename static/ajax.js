@@ -151,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        const url = `${API_BASE_URL}?word=${encodeURIComponent(word)}`;
+        const url = `${API_BASE_URL}/?word=${encodeURIComponent(word)}`;
         const response = await fetch(url, { method: "GET" });
 
         const contentType = response.headers.get("Content-Type") || "";
