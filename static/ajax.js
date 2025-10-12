@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ? await response.json()
           : { message: await response.text() };
 
-        renderJson(storeFeedback, { satus: "ok", data });
+        renderJson(storeFeedback, { status: "ok", data });
         storeForm.reset();
       } catch (error) {
         renderJson(storeFeedback, {
@@ -128,7 +128,6 @@ document.addEventListener("DOMContentLoaded", () => {
             "The request could not be completed. Please check your connection or try again.",
           detail: String(error),
         });
-        s;
       }
     });
   }
