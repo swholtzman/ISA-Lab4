@@ -1,4 +1,3 @@
-// static/ajax.js
 "use strict";
 
 /**
@@ -11,7 +10,7 @@
  * API:
  *   GET  https://assignments.isaaclauzon.com/comp4537/labs/4/api/definitions/?word={word}
  *   POST https://assignments.isaaclauzon.com/comp4537/labs/4/api/definitions
- *        Body (application/x-www-form-urlencoded): word={word}&definition={definition}
+ *        Body (application/json): { "word": "{word}", "definition": "{definition}" }
  *
  * Server returns JSON. Examples (shape may vary slightly based on backend):
  *   { "requestId": 102, "word": "book", "definition": "..." }
@@ -30,7 +29,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof word !== "string") return false;
     const trimmed = word.trim();
     if (trimmed.length === 0) return false;
-    return /^[A-Za-z][A-Za-z\s\-']*$/.test(trimmed);
+    // Word must start with a letter, may contain letters, spaces, hyphens, or apostrophes, but not consecutively or at the end
+    return /^[A-Za-z](?:[A-Za-z]|[ \-'][A-Za-z])*$/.test(trimmed);
   }
 
   /**
@@ -44,6 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /**
    * Renders a friendly JSON block into a <pre>.
+   * Note: This will overwrite all content and children of the preElement.
    */
   function renderJson(preElement, payload) {
     preElement.textContent = JSON.stringify(payload, null, 2);
@@ -81,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        // use simple Content-Type to avoid CORS preflight
+        // use application/json Content-Type (note: this will trigger a CORS preflight)
         const response = await fetch(API_BASE_URL, {
           method: "POST",
           headers: {
@@ -150,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        const url = `${API_BASE_URL}/?word=${encodeURIComponent(word)}`;
+        const url = `${API_BASE_URL}?word=${encodeURIComponent(word)}`;
         const response = await fetch(url, { method: "GET" });
 
         const contentType = response.headers.get("Content-Type") || "";
