@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Page</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="search.js"></script>
+</head>
+<!-- page with text box for searching and a display area for the response -->
+ <!-- if the term is present in the dictionary, display the term and its definition -->
+<!-- if not found, display a message e.g., Request# 103, word 'book' not found! -->
+<body>
+    <h1>Search Dictionary</h1>
+    <form id="searchForm">
+        <input type="text" id="searchInput" placeholder="Enter a term to search" required>
+        <button type="submit">Search</button>
+    </form>
+    <div id="resultArea"></div>
+</body>
+ </html>
